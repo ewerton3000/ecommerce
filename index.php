@@ -9,7 +9,7 @@ $app->config('debug', true);
 $app->get('/', function() {
     
 	$sql = new Hcode\DB\Sql();
-	$results = $sql->select("SELECT * FROM tb_users");
+	$results = $sql->select("SELECT * FROM tb_persons");
 	echo json_encode($results);
 
 });
