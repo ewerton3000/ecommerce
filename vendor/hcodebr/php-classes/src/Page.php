@@ -47,7 +47,7 @@ class Page{
 	{
 		//From here $this->optins=["data"] is not necessary and be will use $data
 		//Por aqui $this->optins=["data"] não é mais necessário e será substituida por $data
-	]	foreach ($data as $key => $value) {
+	foreach ($data as $key => $value) {
     	$this->tpl->assign($key,$value);
     	//Aqui vai pegar os valores de $data um título=$key e o valor=$value
 }
