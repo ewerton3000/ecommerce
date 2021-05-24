@@ -17,6 +17,8 @@ class Page{
 	private $options=[];
 	private $defaults =[
 		//variable will pass in template
+		"header"=>true,
+		"footer"=>true,
 		"data"=>[]
 	];
 	//criando um método  construtor.
@@ -32,17 +34,18 @@ class Page{
 			);
 
 	Tpl::configure( $config );
+	//Condição caso seja header usuario ok 
 	$this->tpl = new Tpl;
 
 
     $this->setData($this->options["data"]);
     	
     	//Using this for call heads for html
-    	$this->tpl->draw("header");
+    	if($this->options["header"] === true ) $this->tpl->draw("header");
     
 	}
 //Create a private function for foreach
-//Criando uma fuñção privada para o foreach
+//Criando uma função privada para o foreach
 	private function setData($data = array())
 	{
 		//From here $this->optins=["data"] is not necessary and be will use $data
@@ -68,7 +71,10 @@ class Page{
 	public function __destruct(){
 		//While class die or exit of php memory will add fotter
 		//Quando a classe morrer ou siar da memória do php ira adicionar o roda pé 
-		$this->tpl->draw("footer");
+
+
+		//Condição caso footer usuario ok
+		if($this->options["footer"]===true)$this->tpl->draw("footer");
 
 	}
 }
