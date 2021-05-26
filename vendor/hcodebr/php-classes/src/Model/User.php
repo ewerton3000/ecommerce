@@ -61,6 +61,66 @@ public static function logout(){
 //Na hora que clicar em sair ele dará a sessão como valor nulo(0)
 	$_SESSION[User::SESSION]= NULL;
 }
+//criando uma função para listar os dados do banco de dados 
+public static function listAll(){
+
+	$sql = new Sql();
+
+	return $sql->select("SELECT * FROM tb_users a INNER JOIN tb_persons b USING(idperson) ORDER BY b.desperson");
+}
+//Criando uma função para Fazer o INSERT dentro do banco
+public function save(){
+$sql = new Sql();
+/*pdesperson VARCHAR(64), 
+pdeslogin VARCHAR(64), 
+pdespassword VARCHAR(256), 
+pdesemail VARCHAR(128), 
+pnrphone BIGINT, 
+pinadmin TINYINT*/
+//Chamando a procedure da tabela ecommerce
+$results = $sql->select("CALL sp_users_save(:desperson,:deslogin,:despassword,:desemail,:nrphone,:inadmin)",array(
+	//
+ ":desperson"=>$this->getdesperson(),
+ ":deslogin"=>$this->getdeslogin(),
+":despassword"=>$this->getdespassword(),
+":desemail"=>$this->getdesemail(),
+":nrphone"=>$this->getnrphone(),
+":inadmin"=>$this->getinadmin()
+));
+$this->setData($results[0]);
+}
+//criando uma função para
+public function get($iduser){
+
+	$sql = new Sql();
+	//Usando o INNER JOIN para juntar os dados de duas tabelas
+	$results = $sql->select("SELECT * FROM tb_users a INNER JOIN tb_persons b USING(idperson) WHERE a.iduser = :iduser",array(
+		":iduser"=>$iduser
+	));
+	$this->setData($results[0]);
+}
+public function update(){
+$sql = new Sql();
+
+//Chamando a procedure da tabela ecommerce
+$results = $sql->select("CALL sp_usersupdate_save(:iduser,:desperson,:deslogin,:despassword,:desemail,:nrphone,:inadmin)",array(
+	":iduser"=>$this->getiduser(),
+ ":desperson"=>$this->getdesperson(),
+ ":deslogin"=>$this->getdeslogin(),
+":despassword"=>$this->getdespassword(),
+":desemail"=>$this->getdesemail(),
+":nrphone"=>$this->getnrphone(),
+":inadmin"=>$this->getinadmin()
+));
+$this->setData($results[0]);
+}
+//Criando a função delete
+public function delete(){
+	$sql = new Sql();
+//Chamando a procedure sp_users_delete do SQL
+	$sql->query("CALL sp_users_delete(:iduser)",array(":iduser"=>$this->getiduser()
+));
+}
 }
 
 //OBS: sempre que vc direcionar uma página use ni final o exit; porque senão entra em ciclo infinito como o for sem limites
