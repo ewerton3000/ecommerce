@@ -4,9 +4,16 @@ namespace Hcode\Model;
 use Hcode\DB\Sql;
 use\Hcode\Model;
 
+
+
 class User extends Model{
 	//Criando uma constante com nome SESSION para fazer contanto com a classe User
-  const SESSION ="User";
+  
+const SESSION ="User";
+  const SECRET = "HcodePhp7_Secret";
+
+//Chave constante para o encrypt(para criptografar) na função getforgot
+  
 
 //Criando um método estático
 	public static function login($login,$password)
@@ -121,8 +128,62 @@ public function delete(){
 	$sql->query("CALL sp_users_delete(:iduser)",array(":iduser"=>$this->getiduser()
 ));
 }
-}
+//Criando uma função para o e-mail
 
+
+public function getForgot($email,$inadmin = true){
+$sql = new Sql();
+
+$results = $sql->select("SELECT * FROM tb_persons a INNER JOIN tb_users b USING(idperson) WHERE a.desemail = :email;",array(
+":email"=>$email));
+if (count($results) === 0 ) { 
+	throw new \Exception("Não foi possível recuperar a sua senha");
+	
+}
+else{
+		$data = $results[0];
+		//Usando a procedure sp_userspasswordsrecoveries_create pelo SQL
+	$results2 = $sql->select("CALL sp_userspasswordsrecoveries_create(:iduser,:desip)",array(
+		":iduser"=>$data["iduser"],
+		":desip"=>$_SERVER["REMOTE_ADDR"]
+	));
+
+
+
+	//Validar se encontrou o email no SQL
+	if (count($results2[0]) === 0) 
+	{
+	throw new \Exception("Não foi possível recuperar a senha!" );
+	
+	}
+	//Se conseguiu encontrar o email no SQL
+	else{
+		$dataRecovery = $results2[0];
+     //Criptografando a senha pela id do email escolhido
+		$iv = random_bytes(openssl_cipher_iv_length('aes-256-cbc'));
+		$code = openssl_encrypt($dataRecovery['idrecovery'],'aes-256-cbc',User::SECRET,0,$iv);
+		$result= base64_encode($iv.$code);
+		//Enviando o link do código por email(via get =?code=$code)
+		if($inadmin === true){
+		$link = "http://www.hcodecommerce.com.br/admin/forgot/reset?code=$code";
+}
+else{
+	$link ="http://www.hcodecommerce.com.br/forgot/reset?code=$result";
+}
+    //abaixo a ordem desemail,desperson,assunto,nome da página html		
+		$mailer = new Mailer($data["desemail"],$data["desperson"],"Redefinir Senhar da Hcode Store","forgot",array(
+			"name"=>$data["desperson"],
+			"link"=>$link
+		));
+		//Executando o send para enviar o email
+		$mailer->send();
+		//Caso os dados do usuarios forem recuperados e precise ir a outro lugar
+		return $data;
+	   } 
+    }
+   }
+
+ }
 //OBS: sempre que vc direcionar uma página use ni final o exit; porque senão entra em ciclo infinito como o for sem limites
 
 

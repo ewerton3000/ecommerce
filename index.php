@@ -1,4 +1,6 @@
 <?php 
+//Este Arquivo ele direciona a rotas de todas a s páginas do site
+
 //iniciando a sessão
 session_start();
 //Usando o autoload.php e a classe Page 
@@ -129,8 +131,33 @@ $app->get("/admin/users/:iduser/delete",function($iduser){
 		header("Location:/admin/users");
 		exit;
 	});
+	//Rota para a tela de esqueci a senha
+	$app->get("/admin/forgot",function(){
+
+		$page = new PageAdmin([
+			"header"=>false,
+			"footer"=>false
+		]);
+     $page->setTpl("forgot");
+	});
+
 	
-	
+	$app->post("/admin/forgot", function(){
+//Usando um método para o post do email
+
+		$user = User::getForgot($_POST["email"]);
+		header("Location:/admin/forgot/sent");
+		exit;
+	});
+
+
+	$app->get("/admin/forgot/sent",function(){
+		$page = new PageAdmin([
+			"header"=>false,
+			"footer"=>false
+		]);
+     $page->setTpl("forgot-sent");
+	});
 	//run():É uma função para rodar tudo que está ligado a variavel $app(que tem as classes html e tals)
 $app->run();
 
