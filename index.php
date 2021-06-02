@@ -158,6 +158,18 @@ $app->get("/admin/users/:iduser/delete",function($iduser){
 		]);
      $page->setTpl("forgot-sent");
 	});
+
+	$app->get("/admin/forgot/reset",function(){
+		$user = User::validForgotDecrypt($_GET["code"]);
+		$page = new PageAdmin([
+			"header"=>false,
+			"footer"=>false
+		]);
+     $page->setTpl("forgot-reset",array(
+     	"name"=>$user["desperson"],
+        "code"=>$_GET["code"]
+    ));
+	});
 	//run():É uma função para rodar tudo que está ligado a variavel $app(que tem as classes html e tals)
 $app->run();
 

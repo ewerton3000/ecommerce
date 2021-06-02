@@ -3,6 +3,7 @@ namespace Hcode\Model;
 //Usando o namespace da classe Sql
 use Hcode\DB\Sql;
 use\Hcode\Model;
+use\Hcode\Mailer;
 
 
 
@@ -96,7 +97,7 @@ $results = $sql->select("CALL sp_users_save(:desperson,:deslogin,:despassword,:d
 ));
 $this->setData($results[0]);
 }
-//criando uma função para
+//criando uma função para puxar dados do SQL
 public function get($iduser){
 
 	$sql = new Sql();
@@ -178,11 +179,37 @@ else{
 		//Executando o send para enviar o email
 		$mailer->send();
 		//Caso os dados do usuarios forem recuperados e precise ir a outro lugar
-		return $data;
+		return $link;
 	   } 
     }
    }
-
+//Criando um método estático
+   public static function validForgotDecrypt($code){
+   	//Tirando a criptografia do cógido
+   	$code=base64_decode($code);
+   	$idrecovery = openssl_decrypt($code,'AES-128-CBC',pack("a16",User::SECRET),0);
+   	$sql=new Sql();
+   	$results = $sql->select("
+   		SELECT * FROM db_ecommerce.tb_userspasswordsrecoveries a
+inner join tb_users b USING(iduser)
+inner join tb_persons c USING(idperson)
+where
+a.idrecovery = 151 :idrecovery
+and
+a.dtrecovery = null
+and
+date_add(a.dtregister,interval 1 hour)>= now();" ,array(
+":idrecovery" => $idrecovery
+));
+   	var_dump($code);
+   	//Se recuperou a senha redefini senão 
+   	if (count($results)===0){
+   		throw new \Exception("Não foi possível recuperar a senha!");
+   	}
+   	else{
+return $results[0];
+   	}
+   }
  }
 //OBS: sempre que vc direcionar uma página use ni final o exit; porque senão entra em ciclo infinito como o for sem limites
 
