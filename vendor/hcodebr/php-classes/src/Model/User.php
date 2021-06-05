@@ -12,6 +12,7 @@ class User extends Model{
   
 const SESSION ="User";
   const SECRET = "HcodePhp7_Secret";
+  const SECRET_IV ="HcodePhp7_Secret";
 
 //Chave constante para o encrypt(para criptografar) na função getforgot
   
@@ -161,9 +162,8 @@ else{
 	else{
 		$dataRecovery = $results2[0];
      //Criptografando a senha pela id do email escolhido
-		$iv = random_bytes(openssl_cipher_iv_length('aes-256-cbc'));
-		$code = openssl_encrypt($dataRecovery['idrecovery'],'aes-256-cbc',User::SECRET,0,$iv);
-		$result= base64_encode($iv.$code);
+		$code = openssl_encrypt($dataRecovery['idrecovery'],'aes-256-cbc',pack("a16",User::SECRET),0,pack("a16",User::SECRET_IV));
+		$code = base64_encode($code);
 		//Enviando o link do código por email(via get =?code=$code)
 		if($inadmin === true){
 		$link = "http://www.hcodecommerce.com.br/admin/forgot/reset?code=$code";
@@ -186,29 +186,42 @@ else{
 //Criando um método estático
    public static function validForgotDecrypt($code){
    	//Tirando a criptografia do cógido
-   	$code=base64_decode($code);
-   	$idrecovery = openssl_decrypt($code,'AES-128-CBC',pack("a16",User::SECRET),0);
-   	$sql=new Sql();
+   	$code = base64_decode($code);
+   	$idrecovery = openssl_decrypt($code,'aes-256-cbc',pack("a16",User::SECRET),0,pack("a16",User::SECRET_IV));
+   	$sql = new Sql();
    	$results = $sql->select("
-   		SELECT * FROM db_ecommerce.tb_userspasswordsrecoveries a
+   		SELECT * FROM tb_userspasswordsrecoveries a
 inner join tb_users b USING(iduser)
 inner join tb_persons c USING(idperson)
 where
-a.idrecovery = 151 :idrecovery
+a.idrecovery = :idrecovery
 and
-a.dtrecovery = null
+a.dtrecovery is null
 and
 date_add(a.dtregister,interval 1 hour)>= now();" ,array(
 ":idrecovery" => $idrecovery
-));
-   	var_dump($code);
-   	//Se recuperou a senha redefini senão 
-   	if (count($results)===0){
-   		throw new \Exception("Não foi possível recuperar a senha!");
+));                          
+   	if (count($results) === 0){
+   		throw new \Exception("Não foi possível recuperar sua senha");
    	}
    	else{
-return $results[0];
+   		return $results[0];
    	}
+   }
+   public static function setFogotUsed($idrecovery){
+   	$sql = new Sql();
+
+   	$sql->query("UPDATE tb_userspasswordsrecoveries SET dtrecovery = NOW() WHERE idrecovery =:idrecovery",array(
+   		":idrecovery"=>$idrecovery
+   	));
+   }
+   public function setPassword($password){
+   	$sql = new Sql();
+
+   	$sql->query("UPDATE tb_users SET despassword = :password WHERE iduser=:iduser",array(
+   		":password"=>$password,
+   		":iduser"=>$this->getiduser()
+   	));
    }
  }
 //OBS: sempre que vc direcionar uma página use ni final o exit; porque senão entra em ciclo infinito como o for sem limites

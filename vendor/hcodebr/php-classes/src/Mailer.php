@@ -8,7 +8,7 @@ use PHPMailer\PHPMailer\Exception;
 use Rain\Tpl;
         
 class Mailer{
-	    const USERNAME="coloque o seu email aqui";
+	    const USERNAME="coloque o seu email";
 	    //por algum motivo só aceitou com a senha
 		const PASSWORD="<?password?>";
 		const NAME_FROM ='Hcode Store';

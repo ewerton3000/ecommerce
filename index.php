@@ -6,6 +6,7 @@ session_start();
 //Usando o autoload.php e a classe Page 
 require_once("vendor/autoload.php");
 //Slin e o Hcode são namespaces 
+
 use\Slim\Slim;
 use\Hcode\Page;
 use\Hcode\PageAdmin;
@@ -168,8 +169,32 @@ $app->get("/admin/users/:iduser/delete",function($iduser){
      $page->setTpl("forgot-reset",array(
      	"name"=>$user["desperson"],
         "code"=>$_GET["code"]
-    ));
+
+     ));
+
 	});
+	//Criando a rota para o post da senha
+   $app->post("/admin/forgot/reset",function(){
+   	 //Verificando o código de novo para evitar brechas no sistema
+   	$forgot = User::validForgotDecrypt($_POST["code"]);
+        	//Passando o nome do usuário de novo para não dar Exception
+   	User::setFogotUsed($forgot["idrecovery"]);
+      $user = new User();
+
+      $user->get((int)$forgot["iduser"]);
+      //usando o hash password para passar criptografado no SQL
+      //Isso é para evitar de ter a senha visivel no SQL
+      $password = password_hash($_POST["password"], PASSWORD_DEFAULT,[
+      	"cost"=>12
+      ]);
+      $user->setPassword($password);
+      
+      $page = new PageAdmin([
+			"header"=>false,
+			"footer"=>false
+		]);
+     $page->setTpl("forgot-reset-success");
+});
 	//run():É uma função para rodar tudo que está ligado a variavel $app(que tem as classes html e tals)
 $app->run();
 
