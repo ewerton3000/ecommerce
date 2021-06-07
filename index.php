@@ -11,7 +11,9 @@ use\Slim\Slim;
 use\Hcode\Page;
 use\Hcode\PageAdmin;
 use\Hcode\Model\User;
+use\Hcode\Model\Category;
 $app = new Slim();
+
 
 //Aqui constroi o codigo html com head body e footer 
 $app->config('debug',true);
@@ -142,7 +144,7 @@ $app->get("/admin/users/:iduser/delete",function($iduser){
      $page->setTpl("forgot");
 	});
 
-	
+	//caminho de página para o formulario do email
 	$app->post("/admin/forgot", function(){
 //Usando um método para o post do email
 
@@ -151,7 +153,7 @@ $app->get("/admin/users/:iduser/delete",function($iduser){
 		exit;
 	});
 
-
+//Caminho da pagina de confirmação de envio de email
 	$app->get("/admin/forgot/sent",function(){
 		$page = new PageAdmin([
 			"header"=>false,
@@ -159,8 +161,9 @@ $app->get("/admin/users/:iduser/delete",function($iduser){
 		]);
      $page->setTpl("forgot-sent");
 	});
-
+//caminho de página para resetar a senha e altera-la
 	$app->get("/admin/forgot/reset",function(){
+		//Confirmando com a chave secreta da Classe User
 		$user = User::validForgotDecrypt($_GET["code"]);
 		$page = new PageAdmin([
 			"header"=>false,
@@ -179,13 +182,15 @@ $app->get("/admin/users/:iduser/delete",function($iduser){
    	$forgot = User::validForgotDecrypt($_POST["code"]);
         	//Passando o nome do usuário de novo para não dar Exception
    	User::setFogotUsed($forgot["idrecovery"]);
+   	//Instanciando a classe User
       $user = new User();
 
       $user->get((int)$forgot["iduser"]);
       //usando o hash password para passar criptografado no SQL
       //Isso é para evitar de ter a senha visivel no SQL
       $password = password_hash($_POST["password"], PASSWORD_DEFAULT,[
-      	"cost"=>12
+      	"cost"=>12 //Aqui é a memoria de custo da senha o padrão é 12
+      	//Se tiver 13 ou mais o servidor pode não aguentar a carga por isso teste com multiplas alterações de senha
       ]);
       $user->setPassword($password);
       
@@ -195,7 +200,81 @@ $app->get("/admin/users/:iduser/delete",function($iduser){
 		]);
      $page->setTpl("forgot-reset-success");
 });
-	//run():É uma função para rodar tudo que está ligado a variavel $app(que tem as classes html e tals)
+   //caminho para a página categories
+   $app->get("/admin/categories",function(){
+   	//Verificar se o usuário esta logado com User::verifyLogin();
+   	User::verifyLogin();
+//Usando a classe Category e o método listAll()
+$categories = Category::listAll();
+$page = new PageAdmin();
+ //selecionando o template categories
+	$page->setTpl("categories",[
+//usando a variavel que está no template categories
+		"categories"=>$categories]);
+});
+	
+//Criando a rota categories create
+   $app->get("/admin/categories/create",function(){
+   	$page = new PageAdmin();
+
+   	$page->setTpl("categories-create");
+   });
+
+   //Criando o método post na página cateories create
+    $app->post("/admin/categories/create",function(){
+    	User::verifyLogin();
+   	$category = new Category();
+   	//Setando o método post
+   	$category->setData($_POST);
+   	//Salvando os dados com o método(ou função)Save
+   	$category->save();
+
+   	header('Location:/admin/categories');
+   	exit;
+   });
+    //Criando o caminho para deletar uma ou mais categorias
+    //OBS:o :idcategory no meio do link abaixo ele seta a posição do id dentro do SQL da categoria selecionada e deleta-la
+$app->get("/admin/categories/:idcategory/delete",function($idcategory){
+	User::verifyLogin();
+	$category = new Category();
+
+	$category->get((int)$idcategory);
+//Usando o método delete 
+	$category->delete();
+//redirecionando para a tela principal da pagina categorias
+	header('Location:/admin/categories');
+   	exit;
+});
+
+//Caminho para editar as categorias
+$app->get("/admin/categories/:idcategory",function($idcategory){
+	User::verifyLogin();
+      $category = new Category;
+
+      $category->get((int)$idcategory);
+
+      $page = new PageAdmin();
+
+   	$page->setTpl("categories-update",[
+   		"category"=>$category->getValues()
+   	]);
+   });
+//Caminho para a pagina de formulário  para atualizar a categoria 
+$app->post("/admin/categories/:idcategory",function($idcategory){
+	User::verifyLogin();
+      $category = new Category;
+      //Puxando a id da categoria selecionada
+      $category->get((int)$idcategory);
+
+     //selecionando a informação do SQL
+      $category->setData($_POST);
+      //Salvando os dados no SQL
+      $category->save();
+      //redirecionando para a tela principal da pagina categorias
+	header('Location:/admin/categories');
+   	exit;
+});	
+//run():É uma função para rodar tudo que está ligado a variavel $app(que tem as classes html e tals)
 $app->run();
 
 

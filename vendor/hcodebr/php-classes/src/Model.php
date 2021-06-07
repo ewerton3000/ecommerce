@@ -13,7 +13,9 @@ public function __call($name,$args)
 	//exit;
 	switch($method){
 		case"get":
-		return $this->values[$fieldName];
+		//Comentário abaixo é pra consulta de dados do categories pq deu id category indefinido
+		//Condição se o valor tiver conteúdo ok senão é nulo!
+		return (isset($this->values[$fieldName])) ? $this->values[$fieldName] : NULL;
 		break;
 
 		case"set":
