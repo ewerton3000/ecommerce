@@ -220,7 +220,7 @@ $page = new PageAdmin();
    	$page->setTpl("categories-create");
    });
 
-   //Criando o método post na página cateories create
+   //Criando o método post na página categories create
     $app->post("/admin/categories/create",function(){
     	User::verifyLogin();
    	$category = new Category();
@@ -274,6 +274,20 @@ $app->post("/admin/categories/:idcategory",function($idcategory){
 	header('Location:/admin/categories');
    	exit;
 });	
+//Criando uma rota para a categoria
+$app->get("/categories/:idcategory",function($idcategory){
+	$category = new Category();
+
+	$category->get((int)$idcategory);
+
+	$page = new Page();
+
+//Colocando o caminho da página category
+	$page->setTpl("category",[
+		'category'=>$category->getValues(),
+		'products'=>[];//transformando products em array
+	]);
+});
 //run():É uma função para rodar tudo que está ligado a variavel $app(que tem as classes html e tals)
 $app->run();
 
