@@ -15,6 +15,16 @@ public static function listAll(){
 
 	return $sql->select("SELECT * FROM tb_products ORDER BY desproduct");
 }
+
+Public static function checkList($list){
+foreach ($list as &$row) {
+	$p = new Product();
+	$p->setData($row);
+	//Puxando a imagem e outros dados do produto
+	$row = $p->getValues();
+}
+return $list;
+}
 //criando o método save
 public function save(){
 	$sql = new Sql();
