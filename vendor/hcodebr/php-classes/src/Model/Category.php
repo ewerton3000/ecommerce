@@ -97,6 +97,34 @@ else{
 	]);
 }
 }
+
+//criando um método para controlar os produtos em uma página(paginação)
+//OBS:$page=Qual é a página que nós temos e $itemsPerPage=é quantos items por página nós queremos!
+public function getProductsPage($page = 1,$itemsPerPage = 3){
+//Usando a variavel Start para iniciar na página 0(como array)
+//OBS:o $page começa na pagina 1 então ele terá que ser 0 pra começar do inicio ou seja ele começa como posição de array por issose faz $page -1 multiplicado com $itemsPerPage
+ $start = ($page -1) * $itemsPerPage;
+ $sql= new Sql();
+ $results =$sql->select("SELECT SQL_CALC_FOUND_ROWS* 
+				FROM tb_products a 
+				INNER JOIN tb_productscategories b ON a.idproduct = b.idproduct
+				INNER JOIN tb_categories c ON c.idcategory = b.idcategory
+				WHERE c.idcategory = :idcategory
+				LIMIT $start,$itemsPerPage;
+				  ",[
+				  	":idcategory"=>$this->getidcategory()
+				  ]);
+
+ //Segunda consulta para contar linhas na tabela
+$resultTotal = $sql->select("SELECT FOUND_ROWS() AS nrtotal;");
+//Usando array no return
+return [
+	"data"=>Product::checklist($results),//Mostrando os dados do produto
+	"total"=>(int)$resultTotal[0]["nrtotal"],//Mostrando os registros começando da posição 0 com nrtotal(rode o codigo do sql do $results no SQL e usando int para garantir que vai ser um número )
+	"pages"=>ceil($resultTotal[0]["nrtotal"]/ $itemsPerPage)//Usando o cell pra criar outra página
+];
+}
+
 //Criando o método para adicionar o produto
 //OBS:Nos parâmetros tem o Product que é a classe e o $product que é o parametro  isso significa que para passar pelo parâmetro tem que ser chamada a classe antes dele
 public function addProduct(Product $product){
@@ -124,4 +152,6 @@ $sql->query("DELETE FROM tb_productscategories WHERE idcategory = :idcategory AN
 
 }
 //OBS:O explode()é usado pra transforma uma string em array e  o implode()é ao contrario!
+
+//ceil():É uma função od php que redireciona uma linha da tabela do SQL para uma segunda página por exemplo vc tem 10 produtos e uma página está cheia então está função cira uma segunda página colocado o 11° produto e assim por diante
 ?>

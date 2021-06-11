@@ -21,22 +21,39 @@ $page->setTpl("index",[
 });
 //Criando uma rota para a categoria aparacere=
 $app->get("/categories/:idcategory",function($idcategory){
-	//verificar a senha
+    //COndição:Se está passando por outra página senão vai pra página 1
+    $page =(isset($_GET["page"])) ? (int)$_GET["page"] : 1;
 
 	$category = new Category();
    //carrega os dados da categoria com $idcategory
 	$category->get((int)$idcategory);
+    //usando $page como parametro
+   $pagination = $category->getProductsPage($page);
+    
+    $pages = [];
 
+    //usando o for
+    //Se  for maior ou igual ao total de páginas($pagination['pages'])
+    for ($i=1; $i <=$pagination['pages'] ; $i++) { 
+    	//Usando um array com o caminho que o usuario vai quando clicar na página('link')
+    	array_push($pages,[
+    		'link'=>'/categories/'.$category->getidcategory().'?page='.$i,
+    		'page'=>$i
+    	]);
+    }
 	$page = new Page();
 
 //Colocando o caminho da página category
 	$page->setTpl("category",[
 		'category'=>$category->getValues(),
 		//Chamando o método checklist da classe Product
-		'products'=>Product::checkList($category->getProducts())//transformando products em array
+		'products'=>$pagination["data"],//transformando products em array
+		'pages'=>$pages
 	]);
 });
 
 //Aqui nesta linha o php vai limpar a memória e ira colocar o rodapé(footer) do html na pagina  
+
+//().'?page=':Esta interrogação(?) é feita para manda r as variaveis de query string 
 
 ?>

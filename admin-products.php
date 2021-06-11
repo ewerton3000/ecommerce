@@ -70,7 +70,7 @@ $app->post("/admin/products/:idproduct",function($idproduct){
 	exit;
 
 });
-
+//Criando o caminho para retirar o produto da categoria
 $app->get("/admin/products/:idproduct/delete",function($idproduct){
 	User::verifyLogin();
 
