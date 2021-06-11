@@ -1,9 +1,9 @@
 <?php
 use\Hcode\Page;
-
 use\Hcode\PageAdmin;
 use\Hcode\Model\User;
 use\Hcode\Model\Category;
+use\Hcode\Model\Product;
 
    //caminho para a página categories
    $app->get("/admin/categories",function(){
@@ -79,18 +79,74 @@ $app->post("/admin/categories/:idcategory",function($idcategory){
 	header('Location:/admin/categories');
    	exit;
 });	
-//Criando uma rota para a categoria
-$app->get("/categories/:idcategory",function($idcategory){
-	$category = new Category();
+//Criando o caminho para os produtos e categorias
+$app->get("/admin/categories/:idcategory/products",function($idcategory){
+User::verifyLogin();
+
+$category = new Category();
 
 	$category->get((int)$idcategory);
 
-	$page = new Page();
+	$page = new PageAdmin();
 
-//Colocando o caminho da página category
-	$page->setTpl("category",[
+  
+
+	$page->setTpl("categories-products",[
+		//Puxando os dados do sql e passa-los pro html(site)  
 		'category'=>$category->getValues(),
-		'products'=>[]//transformando products em array
+		'productsRelated'=>$category->getProducts(),
+		'productsNotRelated'=>$category->getProducts(false)
+		//transformando products em array
+		//OBS:procure estes nomes no categories-products.html
 	]);
+});
+
+
+//Caminho para adicionar a categoria e o produto
+$app->get("/admin/categories/:idcategory/products/:idproduct/add",function($idcategory,$idproduct){
+User::verifyLogin();
+//Instanciando a classe category para usar a variavel $category
+$category = new Category();
+
+	$category->get((int)$idcategory);
+
+	$product = new Product();
+	//pegabdo a id do produto
+	$product->get((int)$idproduct);
+	//Adicionando a categoria escolhida
+	$category->addProduct($product);
+
+	//Redirecionando para a página dos produtos e categorias
+	header("Location: /admin/categories/".$idcategory."/products");
+	exit;
+   
+
+  
+
+});
+
+
+
+//Criando o caminho para remover o produto da categoria
+$app->get("/admin/categories/:idcategory/products/:idproduct/remove",function($idcategory,$idproduct){
+User::verifyLogin();
+//Instanciando a classe category para usar a variavel $category
+$category = new Category();
+
+	$category->get((int)$idcategory);
+
+	
+  
+	$product = new Product();
+	//pegabdo a id do produto
+	$product->get((int)$idproduct);
+	//Adicionando a categoria escolhida
+	$category->removeProduct($product);
+
+	//Redirecionando para a página dos produtos e categorias
+	header("Location: /admin/categories/".$idcategory."/products");
+	exit;
+
+	
 });
 ?>
