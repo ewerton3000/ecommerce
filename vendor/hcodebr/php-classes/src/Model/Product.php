@@ -117,5 +117,27 @@ public function setPhoto($file){
       
      
 }
+//Método para puxar a url do produto
+public function getFromURL($desurl){
+	$sql = new Sql();
+ //Consultando a tabela products e usando o LIMIT para mostrar apenas uma linha
+	$rows=$sql->select("SELECT * FROM tb_products WHERE desurl =:desurl LIMIT 1",[
+		"desurl"=>$desurl
+	]);
+
+	//puxando a linha como método setData na posição 0
+	$this->setData($rows[0]);
+}
+
+//criando um método para mostrar a categoria nos detalhes do produto
+public function getCategories(){
+	$sql = new Sql();
+//Usando o inner join para relacionar as tabelas e mostrara categoria do produto!
+	return $sql->select("
+		SELECT * FROM tb_categories a INNER JOIN tb_productscategories b ON a.idcategory = b.idcategory WHERE b.idproduct = :idproduct
+		",[
+			":idproduct"=>$this->getidproduct()
+		]);
+}
 }
 ?>

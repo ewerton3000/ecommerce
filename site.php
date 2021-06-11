@@ -19,9 +19,9 @@ $page->setTpl("index",[
 "products"=>Product::checkList($products)
 ]);  
 });
-//Criando uma rota para a categoria aparacere=
+//Criando uma rota para a categoria aparacer e inserindo as páginas
 $app->get("/categories/:idcategory",function($idcategory){
-    //COndição:Se está passando por outra página senão vai pra página 1
+    //Condição:Se está passando por outra página senão vai pra página 1
     $page =(isset($_GET["page"])) ? (int)$_GET["page"] : 1;
 
 	$category = new Category();
@@ -50,6 +50,21 @@ $app->get("/categories/:idcategory",function($idcategory){
 		'products'=>$pagination["data"],//transformando products em array
 		'pages'=>$pages
 	]);
+});
+
+//Criando a rota para detalhes do produto
+$app->get("/products/:desurl",function($desurl){
+$product = new Product();
+
+$product->getFromURL($desurl);
+
+$page = new Page();
+
+$page->setTpl("product-detail",[
+"product"=>$product->getValues(),
+"categories"=>$product->getCategories()
+]);
+
 });
 
 //Aqui nesta linha o php vai limpar a memória e ira colocar o rodapé(footer) do html na pagina  
