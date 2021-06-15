@@ -1,8 +1,8 @@
 <?php
 use\Hcode\Page;
 use\Hcode\Model\Product;
-
 use\Hcode\Model\Category;
+use\Hcode\Model\Cart;
 //Caminho de home do site
 $app->get('/', function() {
 	//Instance Class Page Instanciando a classe Page
@@ -67,6 +67,14 @@ $page->setTpl("product-detail",[
 
 });
 
+
+//criando a rota para a página carrinho
+$app->get("/cart",function(){
+$cart = Cart::getFromSession();	
+$page = new Page();
+//selecionando o TPL do carrinho
+$page->setTpl("cart");
+});
 //Aqui nesta linha o php vai limpar a memória e ira colocar o rodapé(footer) do html na pagina  
 
 //().'?page=':Esta interrogação(?) é feita para manda r as variaveis de query string 

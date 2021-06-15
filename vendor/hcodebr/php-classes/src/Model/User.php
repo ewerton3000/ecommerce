@@ -17,6 +17,49 @@ const SESSION ="User";
 //Chave constante para o encrypt(para criptografar) na função getforgot
   
 
+
+//criando um método para identificar o usuario que está usando o carrinho
+public static function getFromSession(){
+	$user = new User();
+	//Se o id do usuario for maior que 0 é valido
+	if (isset($_SESSION[User::SESSION]) && (int)$_SESSION[User::SESSION]["iduser"]> 0) {
+		$user->setData($_SESSION[User::SESSION]);
+	}
+	return $user;
+}
+
+//Criando um método para checar se a sessão está ativa ou não
+//Usando um parâmetro $inadmin para verificar se é um administrador ou não
+public static function checkLogin($inadmin = true){
+	//Se a sessão do usuario está definida ok.Se não estiver definida estará vazia.Se a sessão está definida mas não é maior que 0
+	if (
+	     !isset($_SESSION[User::SESSION])
+	     ||
+	     !$_SESSION[User::SESSION]
+	     ||
+	     !(int)$_SESSION[User::SESSION]["iduser"]> 0
+	      ) {
+		//Não está logado então retorna false
+		return false;
+	}
+	else{
+        
+        //Se o usuario for ADM na rota da ADM ok
+        if ($inadmin === true && (bool)$_SESSION[User::SESSION]["inadmin"] === true) {
+        	return true;
+        }
+        //Se ele não for administrador não acessa areas administrativas
+        elseif($inadmin === false){
+         
+         return true;
+        }
+        //Se nenhuma das duas condições acima baterem ele não está loga e retornará false
+        else{
+        	return false;
+        }
+	}
+}
+
 //Criando um método estático
 	public static function login($login,$password)
 	{
@@ -50,15 +93,9 @@ if(password_verify($password, $data["despassword"])=== true){
 public static function verifyLogin($inadmin = true){
 
 //Se a sessão foi definida ok senão volta pro login
-	if(
-		!isset($_SESSION[User::SESSION])
-		||// ||=ou
-		!$_SESSION[User::SESSION]
-		||
-		!(int)$_SESSION[User::SESSION]["iduser"] > 0
-		||
-		(bool)$_SESSION[User::SESSION]["inadmin"] !==$inadmin
-	){
+	//Usando o método checklogin para checar se o login é ADM ou não
+	if(!User::checkLogin($inadmin))
+	{
 		header("location:/admin/login");
 		exit;
 
