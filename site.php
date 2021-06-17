@@ -73,10 +73,66 @@ $app->get("/cart",function(){
 $cart = Cart::getFromSession();	
 $page = new Page();
 //selecionando o TPL do carrinho
-$page->setTpl("cart");
+$page->setTpl("cart",[
+"cart"=>$cart->getValues(),
+"products"=>$cart->getProducts()
+]);
 });
+
+//Criando a rota para adicionar o produto
+$app->get("/cart/:idproduct/add",function($idproduct){
+ $product = new Product();
+//Puxando a id do produto
+ $product->get((int)$idproduct);
+ //Instanciando a classe Cart e usando o método getFromsession para aprovar a sessão do carrinho
+ $cart = Cart::getFromSession();
+ //Se colocar mais de um ok senão vai ser só um produto msm(conectando com  a quantidade de produtos puxando pelo QTD do html do products details.html )
+ $qtd = (isset($_GET["qtd"])) ?(int)$_GET["qtd"]:1;
+//Usando o for como contador de produtos com o método 
+ for ($i=1; $i < $qtd ; $i++) { 
+ 	$cart->addProduct($product);//Aqui ele adiciona o produto
+ }
+ //adicionando o produto com o método addProduct
+ $cart->addProduct($product);
+ //Redirecionando para a página do carrinho
+ header("Location:/cart");
+
+ exit;
+});
+
+//Criando a rota para remover UM produto
+$app->get("/cart/:idproduct/minus",function($idproduct){
+ $product = new Product();
+//Puxando a id do produto
+ $product->get((int)$idproduct);
+ //Instanciando a classe Cart e usando o método getFromsession para aprovar a sessão do carrinho
+ $cart = Cart::getFromSession();
+ //Removendo o produto com o método removeProduct
+ $cart->removeProduct($product);
+ //Redirecionando para a página do carrinho
+ header("Location:/cart");
+ exit;
+});
+
+
+//Criando a rota para remover TODOS  OS PRODUTOS
+$app->get("/cart/:idproduct/remove",function($idproduct){
+ $product = new Product();
+//Puxando a id do produto
+ $product->get((int)$idproduct);
+ //Instanciando a classe Cart e usando o método getFromsession para aprovar a sessão do carrinho
+ $cart = Cart::getFromSession();
+ //Removendo o produto com o método removeProduct e usando true para bater com  o $all do método que é false
+ $cart->removeProduct($product,true);
+ //Redirecionando para a página do carrinho
+ header("Location:/cart");
+ exit;
+});
+
+
 //Aqui nesta linha o php vai limpar a memória e ira colocar o rodapé(footer) do html na pagina  
 
 //().'?page=':Esta interrogação(?) é feita para manda r as variaveis de query string 
 
+//Repare que na rota de remover todos os produtos  o true é usado para ativar a query da variavel $all que está como false no método removeProduct no arquivo cart.PHP
 ?>

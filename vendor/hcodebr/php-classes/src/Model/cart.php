@@ -103,6 +103,60 @@ $results =$sql->select("CALL sp_carts_save(:idcart,:dessessionid,:iduser,:deszip
   $this->setData($results[0]);
  }
 
+//Criando um método para adicionar o produto
+//Instanciando a classe e usando um parametro com o nome Product
+ public function addProduct(Product $product){
+ 	$sql =new Sql();
+
+ 	$sql->query("INSERT INTO tb_cartsproducts(idcart,idproduct) VALUES(:idcart,:idproduct)",[
+ 		':idcart'=>$this->getidcart(),
+ 	    ':idproduct'=>$product->getidproduct()
+ 	]);
+
+ }
+
+//Criando um método para remover o produto
+ //Instanciando a classe Product e usando $all para remove todos os produtos do carrinho
+ public function removeProduct(Product $product,$all = false){
+
+$sql = new Sql();
+
+//Removendo todos os produtos
+if ($all) {
+	$sql->query("UPDATE tb_cartsproducts SET dtremoved = NOW() WHERE idcart = :idcart AND idproduct = :idproduct AND dtremoved IS NULL",[
+		':idcart'=>$this->getidcart(),
+	    ':idproduct'=>$product->getidproduct()
+	]);
+}
+//Caso queira excluir um produto  
+//OBS:a query é parecida mas o LIMIT 1 faz com que só um produto seja excluido
+else{
+	$sql->query("UPDATE tb_cartsproducts SET dtremoved = NOW() WHERE idcart = :idcart AND idproduct = :idproduct AND dtremoved IS NULL LIMIT 1",[
+		':idcart'=>$this->getidcart(),
+	    ':idproduct'=>$product->getidproduct()
+	]);
+}
+
+ }
+
+ //Criando um método para listar os produtos 
+ public function getProducts(){
+
+ 	$sql = new Sql();
+
+//Criando uma query para puxando a tabela tb_products  com INNER JOIN e retorna-lo na página!
+ 	$rows = $sql->select("
+ 		SELECT b.idproduct,b.desproduct,b.vlprice,b.vlwidth,b.vlheight,b.vllength,b.vlweight,b.desurl, COUNT(*) AS nrqtd, SUM(b.vlprice) AS vltotal
+ 		FROM tb_cartsproducts a 
+ 		INNER JOIN tb_products b ON a.idproduct = b.idproduct 
+ 		WHERE a.idcart = :idcart AND a.dtremoved IS NULL
+ 		GROUP BY b.idproduct,b.desproduct,b.vlprice,b.vlwidth,b.vlheight,b.vllength,b.vlweight,b.desurl
+ 	        ORDER BY b.desproduct;
+ 	        ",[
+ 	        	":idcart"=>$this->getidcart()
+ 	        ]);
+ 	return Product::checkList($rows);
+ }
 
 }
 
