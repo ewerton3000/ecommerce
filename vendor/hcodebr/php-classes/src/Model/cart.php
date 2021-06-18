@@ -8,8 +8,9 @@ use\Hcode\Model\User;
 
 //criando a classe cart(carrinho)
 class Cart extends Model{
-	//criando uma constante para o carrinho
+	//criando as constantes para o carrinho
 	const SESSION ="Cart";
+	const SESSION_ERROR ="CartError";
 
 
 	//criando um método para inserir um carrinho novo ou criar carrinho vazio ou saiu da sessão e verifica pelo sessionid para puxar o carrinho certo
@@ -112,6 +113,7 @@ $results =$sql->select("CALL sp_carts_save(:idcart,:dessessionid,:iduser,:deszip
  		':idcart'=>$this->getidcart(),
  	    ':idproduct'=>$product->getidproduct()
  	]);
+ 	$this->getCalculateTotal();
 
  }
 
@@ -127,7 +129,7 @@ if ($all) {
 		':idcart'=>$this->getidcart(),
 	    ':idproduct'=>$product->getidproduct()
 	]);
-}
+	}
 //Caso queira excluir um produto  
 //OBS:a query é parecida mas o LIMIT 1 faz com que só um produto seja excluido
 else{
@@ -136,6 +138,8 @@ else{
 	    ':idproduct'=>$product->getidproduct()
 	]);
 }
+$this->getCalculateTotal();
+
 
  }
 
@@ -156,6 +160,143 @@ else{
  	        	":idcart"=>$this->getidcart()
  	        ]);
  	return Product::checkList($rows);
+ }
+
+
+ //Criando um método para somar todos os itens do produto(preço,tamanho,peso,altura)
+ public function getProductsTotals(){
+ 	$sql = new Sql();
+
+ 	$results = $sql->select("
+ 		SELECT SUM(vlprice) AS vlprice,SUM(vlwidth) AS vlwidth,SUM(vlheight) AS vlheight,SUM(vllength) AS vllength,SUM(vlweight) AS vlweight,COUNT(*) AS nrqtd
+			FROM tb_products a 
+			INNER JOIN tb_cartsproducts b ON a.idproduct = b.idproduct
+			WHERE b.idcart = :idcart AND dtremoved IS NULL",[
+			         ":idcart"=>$this->getidcart()
+     ]);
+ 	if (count($results)> 0) {
+ 		return $results[0];
+ 	}
+ 	else{
+ 		return[];
+ 	}
+ }
+
+ //Criando um método para selecionar o CEP digitado
+ public function setFreight($nrzipcode){
+
+ 	$nrzipcode = str_replace('-', '', $nrzipcode);
+
+ 	$totals = $this->getProductsTotals();
+    //se a altura for menor que 2 ela será igual a 2 por causa da regras de négocio do serviço(correio)
+ 	if($totals['vlheight']< 2) $totals['vlheight'] = 2;
+    //se o comprimento for menor que 16 ela será igual a 16 por causa da regras de négocio do serviço(correio)
+ 	if($totals['vllength']< 16) $totals['vllength'] = 16;
+
+ 	if ($totals['nrqtd'] > 0) {
+       //Passando a s informações numa query string
+       $qs = http_build_query([
+       			'nCdEmpresa' => '',
+                'sDsSenha' => '',
+                'nCdServico' => '40010',
+                'sCepOrigem' => '09853120',
+                'sCepDestino' => $nrzipcode,
+                'nVlPeso' => $totals['vlweight'],
+                'nCdFormato' => '1',
+                'nVlComprimento' => $totals['vllength'],
+                'nVlAltura' => $totals['vlheight'],
+                'nVlLargura' => $totals['vlwidth'],
+                'nVlDiametro' => '0',
+                'sCdMaoPropria' => 'S',
+                'nVlValorDeclarado' => $totals['vlprice'],
+                'sCdAvisoRecebimento' => 'S',
+       ]);
+
+ 	 	//executando uma consulta pela url abaixo e 
+ 	 	$xml = simplexml_load_file("http://ws.correios.com.br/calculador/CalcPrecoPrazo.asmx/CalcPrecoPrazo?".$qs);
+
+        $result =$xml->Servicos->cServico;
+
+        //Caso a mensagem for diferente de vazio
+        if ($result->MsgErro != '') {
+        	//Passando a mensagem de erro
+        Cart::setMsgError($result->MsgErro);
+
+
+        }
+        
+        else{
+        	//Limpando a mensagem de erro
+        	Cart::clearMsgError();
+        }
+
+        $this->setnrdays($result->PrazoEntrega);
+        $this->setvlfreight(Cart::formatValueToDecimal($result->Valor));
+        $this->setdeszipcode($nrzipcode);
+ 	    //Salvando as informações pro banco
+ 	    $this->save();
+ 	    //retornando para a tela os dados 
+ 	    return $result;
+ 	 	
+ 	 }
+ 	 else{
+
+ 	 } 
+ }
+ //Criando o método para converter os valores quando aparecerem na tela
+ public static function formatValueToDecimal($value):float
+ {
+ 	//tirando o ponto por ponto vazio
+ 	$value = str_replace('.','',$value);
+ 	//trocando o ponto vazio por vírgula
+ 	return str_replace(',', '.',$value);
+
+ }
+//Criando um método para 
+ public static function setMsgError($msg){
+
+$_SESSION[Cart::SESSION_ERROR]=$msg;
+ }
+
+ public static function getMsgError(){
+ 	//Se tiver definido retorna o carrinho senão não retorna nada na tela
+ 	$msg = (isset($_SESSION[Cart::SESSION_ERROR])) ? $_SESSION[Cart::SESSION_ERROR]: "";
+ 	Cart::clearMsgError();
+ 	return $msg;
+ }
+//Criando um método para Limpar o carrinho
+ public static function clearMsgError(){
+ 	$_SESSION[Cart::SESSION_ERROR] = NULL;
+ }
+ //Criando um método para atualizar o valor do cep se tiver mais de um produto no carrinho
+  public function updateFreight()
+    {
+
+        if ($this->getdeszipcode() !=''){
+
+            $this->setFreight($this->getdeszipcode());
+
+        }
+
+    }
+    //Criando um método para somar os valores do produtos
+    public function getValues(){
+     
+     $this->getCalculateTotal();
+
+     return parent::getValues();  }
+ 
+//criando um método para pegar o valor total somado dos produtos
+ public function getCalculateTotal(){
+//Atualizando o valor do frete
+ 	$this->updateFreight();
+
+$totals = $this->getProductsTotals();
+
+$this->setvlsubtotal($totals["vlprice"]);
+//Somando o valor total com valor do frete
+$this->setvltotal($totals['vlprice'] + $this->getvlfreight());
+
  }
 
 }

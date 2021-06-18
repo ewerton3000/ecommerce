@@ -75,7 +75,8 @@ $page = new Page();
 //selecionando o TPL do carrinho
 $page->setTpl("cart",[
 "cart"=>$cart->getValues(),
-"products"=>$cart->getProducts()
+"products"=>$cart->getProducts(),
+"error"=>Cart::getMsgError()
 ]);
 });
 
@@ -129,7 +130,19 @@ $app->get("/cart/:idproduct/remove",function($idproduct){
  exit;
 });
 
+//Criando a rota para enviar o cep digitado no formulario via post
+$app->post("/cart/freight",function(){
 
+$cart = Cart::getFromSession();
+
+$cart->setFreight($_POST["zipcode"]);
+
+header("Location:/cart");
+
+exit;
+
+
+});
 //Aqui nesta linha o php vai limpar a memória e ira colocar o rodapé(footer) do html na pagina  
 
 //().'?page=':Esta interrogação(?) é feita para manda r as variaveis de query string 
