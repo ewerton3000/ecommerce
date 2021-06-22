@@ -3,6 +3,9 @@ use\Hcode\Page;
 use\Hcode\Model\Product;
 use\Hcode\Model\Category;
 use\Hcode\Model\Cart;
+use\Hcode\Model\Address;
+use\Hcode\Model\User;
+
 //Caminho de home do site
 $app->get('/', function() {
 	//Instance Class Page Instanciando a classe Page
@@ -143,9 +146,56 @@ exit;
 
 
 });
+
+//Rota para o checkout(finalizar compra)
+$app->get("/checkout",function(){
+//Passando pra tela de login do usuario com false
+User::verifyLogin(false);
+$cart = Cart::getFromSession();
+//variavel para o endereço
+$address = new Address();
+$page = new Page();
+$page->setTpl("checkout",[
+    'cart'=>$cart->getValues(),
+    'address'=>$address->getValues()
+      ]);
+});
+
+//Rota para entrar como usuário cliente
+$app->get("/login",function(){
+$page = new Page();
+//Redirecionando para fazer login na página
+$page->setTpl("login",[
+    //Mostrando o erro do usuario na página
+'error'=>User::getError()
+]);
+});
+
+//Usando o post para o login e senha
+$app->post("/login",function(){
+    try{
+User::login($_POST["login"],$_POST["password"]);
+
+}
+catch(Exception $e){
+    //Puxando o erro da classe User e setando a mensagem do exception
+    User::setError($e->getMessage());
+}
+header("Location: /checkout");
+exit;
+});
+//Rota para Fazer logout de usuário
+$app->get("/logout",function(){
+User::logout();
+
+header("Location: /login");
+exit;
+});
 //Aqui nesta linha o php vai limpar a memória e ira colocar o rodapé(footer) do html na pagina  
 
 //().'?page=':Esta interrogação(?) é feita para manda r as variaveis de query string 
 
 //Repare que na rota de remover todos os produtos  o true é usado para ativar a query da variavel $all que está como false no método removeProduct no arquivo cart.PHP
+
+//No caminho do checkout repare que o User::verifyLogin tem um false dentro do parenteses é pra quando uma pessoa logar dentro do site ela nao seja identificiada como administrador que no caso ficaria sem nada dentro do parentese
 ?>

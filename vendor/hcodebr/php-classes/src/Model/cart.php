@@ -299,6 +299,7 @@ $this->setvltotal($totals['vlprice'] + $this->getvlfreight());
 
  }
 
+
 }
 
 //Aqui neste arquivo vc controla os dados dos carrinhos do site 

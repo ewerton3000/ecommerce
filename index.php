@@ -13,7 +13,6 @@ $app = new Slim();
 
 //Aqui constroi o codigo html com head body e footer 
 $app->config('debug',true);
-
 //Usando o require once para puxar os caminhos de tpl e métodos dos arquivos php
 require_once("site.php");
 require_once("functions.php");
