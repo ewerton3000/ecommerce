@@ -298,17 +298,50 @@ date_add(a.dtregister,interval 1 hour)>= now();" ,array(
 
 
    }
-   //Método para buscar o error reistrado
-   public static function setErrorRegister($msg){
-   
-   $_SESSION[User::ERROR_REGISTER] = $msg;
-   }
+  
 
 //Método para fazer a criptografia da senha e usa-la antes de salvar no SQL
 public static function getPasswordHash($password){
 	return password_hash($password, PASSWORD_DEFAULT,[
 		'cost'=>12
 	]);
+ }
+
+ //Método para mostrar o erro de cadastro 
+ public static function setErrorRegister($msg){
+
+ 	$_SESSION[User::ERROR_REGISTER] = $msg;
+ }
+
+
+ //
+ public static function getErrorRegister(){
+
+ 	//Se o erro já está definido e verifica se o erro não é vazio  e se ele existir retorna vazia
+ 	$msg = (isset($_SESSION[User::ERROR_REGISTER]) && $_SESSION[User::ERROR_REGISTER]) ? $_SESSION[User::ERROR_REGISTER] : '';
+ 	User::clearErrorRegister();
+ 	return $msg;
+ } 
+
+ //Método para limpar o erro de registro
+ public static function clearErrorRegister(){
+
+ 	$_SESSION[User::ERROR_REGISTER] = NULL;
+
+ }
+
+ //Método para checar se existi dois logins iguais registrados no SQL
+ public static function checkLoginExist($login){
+
+$sql = new Sql();
+
+//Selecionando toda a tabela tb_users onde deslogin é igual a deslogin(login)
+
+$results = $sql->select("SELECT * FROM tb_users WHERE deslogin = :deslogin",[
+   ":deslogin"=>$login
+   ]);
+//Se for maior que 0 ele mostrará e se não for retorna false
+return (count($results) > 0);
  }
 }
 //OBS: sempre que vc direcionar uma página use ni final o exit; porque senão entra em ciclo infinito como o for sem limites

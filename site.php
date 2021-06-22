@@ -167,7 +167,11 @@ $page = new Page();
 //Redirecionando para fazer login na página
 $page->setTpl("login",[
     //Mostrando o erro do usuario na página
-'error'=>User::getError()
+'error'=>User::getError(),
+'errorRegister'=>User::getErrorRegister(),
+//Condição se a sessão existir passa ela mesmo senão o nome,email e o telefone estiverem vazios passa um array vazio
+'registerValues'=>(isset($_SESSION['registerValues'])) ? $_SESSION['registerValues'] : ['name'=>'', 'email'=>'', 'phone'=>'']
+
 ]);
 });
 
@@ -191,6 +195,64 @@ User::logout();
 header("Location: /login");
 exit;
 });
+
+//Rota de post para registrar um usuário
+$app->post("/register",function(){
+//criando uma função registerValues para setar os campos
+    $_SESSION['registerValues'] = $_POST;
+   //Validação de dados.Se não tiver nome ou o campo estiver vazio
+    if(!isset($_POST['name']) || $_POST['name'] == ''){
+    User::setErrorRegister("Preencha o seu nome.");
+    //redireciona pra tela de registro/login
+    header("Location: /login");
+    exit;
+}
+//Validação de dados.Se não tiver email ou o campo estiver vazio
+    if(!isset($_POST['email']) || $_POST['email'] == ''){
+    User::setErrorRegister("Preencha o seu e-mail.");
+    //redireciona pra tela de registro/login
+    header("Location: /login");
+    exit;
+}
+
+
+
+//Validação de dados.Se não tiver senha ou o campo estiver vazio
+    if(!isset($_POST['password']) || $_POST['password'] == ''){
+    User::setErrorRegister("Preencha a senha.");
+    //redireciona pra tela de registro/login
+    header("Location: /login");
+    exit;
+}
+
+//Se o login for igual a um login já registrado
+if(user::checkLoginExist($_POST['email']) === true){
+    User:setErrorRegister("Este endereço de e-mail já está sendo usado por outro usuário.");
+    header("Location: /login");
+    exit;
+}
+    $user = new User();
+
+//Selecionando os names do formulario HTML para inseri-lo no SQL 
+    $user->setData([
+        'inadmin'=>0,//0=false para não entrar ADMS pelo login comun
+         'deslogin'=>$_POST['email'],
+         'desperson'=>$_POST['name'],
+        'desemail'=>$_POST['email'],
+        'despassword'=>$_POST['password'],
+        'nrphone'=>$_POST['phone']
+    ]);
+    $user->save();
+    
+    //Fazendo a autenticação com login e senha do site com SQL
+    User::login($_POST['email'],$_POST['password']);
+
+    //Caso login seja com sucesso redireciona
+    header('location: /checkout');
+    exit;
+
+
+})
 //Aqui nesta linha o php vai limpar a memória e ira colocar o rodapé(footer) do html na pagina  
 
 //().'?page=':Esta interrogação(?) é feita para manda r as variaveis de query string 
