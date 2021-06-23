@@ -227,7 +227,7 @@ $app->post("/register",function(){
 
 //Se o login for igual a um login já registrado
 if(user::checkLoginExist($_POST['email']) === true){
-    User:setErrorRegister("Este endereço de e-mail já está sendo usado por outro usuário.");
+    User::setErrorRegister("Este endereço de e-mail já está sendo usado por outro usuário.");
     header("Location: /login");
     exit;
 }
@@ -252,7 +252,62 @@ if(user::checkLoginExist($_POST['email']) === true){
     exit;
 
 
-})
+});
+
+//Rota para a tela de esqueci a senha do usuario
+    $app->get("/forgot",function(){
+
+        $page = new Page();
+     $page->setTpl("forgot");
+    });
+
+    //caminho de página para o formulario do email
+    $app->post("/forgot", function(){
+//Usando um método para o post do email
+
+        $user = User::getForgot($_POST["email"], false);
+        header("Location:/forgot/sent");
+        exit;
+    });
+
+//Caminho da pagina de confirmação de envio de email do usuário
+    $app->get("/forgot/sent",function(){
+        $page = new Page();
+     $page->setTpl("forgot-sent");
+    });
+//caminho de página para resetar a senha e altera-la
+    $app->get("/forgot/reset",function(){
+        //Confirmando com a chave secreta da Classe User
+        $user = User::validForgotDecrypt($_GET["code"]);
+        $page = new Page();
+     $page->setTpl("forgot-reset",array(
+        "name"=>$user["desperson"],
+        "code"=>$_GET["code"]
+
+     ));
+
+    });
+    //Criando a rota para o post da senha
+   $app->post("/forgot/reset",function(){
+     //Verificando o código de novo para evitar brechas no sistema
+    $forgot = User::validForgotDecrypt($_POST["code"]);
+            //Passando o nome do usuário de novo para não dar Exception
+    User::setFogotUsed($forgot["idrecovery"]);
+    //Instanciando a classe User
+      $user = new User();
+
+      $user->get((int)$forgot["iduser"]);
+      //usando o hash password para passar criptografado no SQL
+      //Isso é para evitar de ter a senha visivel no SQL
+      $password = password_hash($_POST["password"], PASSWORD_DEFAULT,[
+        "cost"=>12 //Aqui é a memoria de custo da senha o padrão é 12
+        //Se tiver 13 ou mais o servidor pode não aguentar a carga por isso teste com multiplas alterações de senha
+      ]);
+      $user->setPassword($password);
+      
+      $page = new Page();
+     $page->setTpl("forgot-reset-success");
+});
 //Aqui nesta linha o php vai limpar a memória e ira colocar o rodapé(footer) do html na pagina  
 
 //().'?page=':Esta interrogação(?) é feita para manda r as variaveis de query string 

@@ -218,11 +218,12 @@ else{
 		$code = openssl_encrypt($dataRecovery['idrecovery'],'aes-256-cbc',pack("a16",User::SECRET),0,pack("a16",User::SECRET_IV));
 		$code = base64_encode($code);
 		//Enviando o link do código por email(via get =?code=$code)
+		//Se for admin troca a senha do admin se for cliente troca a senha do cliente
 		if($inadmin === true){
 		$link = "http://www.hcodecommerce.com.br/admin/forgot/reset?code=$code";
 }
 else{
-	$link ="http://www.hcodecommerce.com.br/forgot/reset?code=$result";
+	$link ="http://www.hcodecommerce.com.br/forgot/reset?code=$code";
 }
     //abaixo a ordem desemail,desperson,assunto,nome da página html		
 		$mailer = new Mailer($data["desemail"],$data["desperson"],"Redefinir Senhar da Hcode Store","forgot",array(
