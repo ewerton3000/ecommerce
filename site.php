@@ -308,6 +308,72 @@ if(user::checkLoginExist($_POST['email']) === true){
       $page = new Page();
      $page->setTpl("forgot-reset-success");
 });
+
+   //Rota para a página de perfil(profile)
+   $app->get("/profile",function(){
+    User::verifyLogin(false);
+
+    $user = User::getFromSession();
+
+    $page = new Page();
+  
+    $page->setTpl("profile",[
+        'user'=>$user->getValues(),
+        'profileMsg'=>User::getSuccess(),//Mensagem de alteração com sucesso
+        'profileError'=>User::getError()//Erro no perfil
+    ]);
+
+
+   });
+
+   //Rota de post do profile do nome,e-mail e telefone
+   $app->post("/profile",function(){
+
+    //Usando o false para indicar que não é um administrador
+   User::verifyLogin(false);
+   //Se ele não existir ou ele for vazio mostre a mensagem de erro
+   if(!isset($_POST['desperson']) || $_POST['desperson'] === ''){ 
+    User::setError("Preencha o seu nome.");
+    header('Location: /profile');
+    exit;
+   }
+    if(!isset($_POST['desemail']) || $_POST['desemail'] === ''){ 
+    User::setError("Preencha o seu e-mail.");
+    header('Location: /profile');
+    exit;
+   }
+    if(!isset($_POST['desperson']) || $_POST['desperson'] === ''){ 
+    User::setError("Preencha o seu nome.");
+   }
+  $user = User::getFromSession();
+
+//Se o email do post for diferente do email do SQL ele mudará 
+  if($_POST['desemail'] !== $user->getdesemail()){
+    //Se o email ja estiver cadastrado será mostrado mensagem de erro
+    if(User::checkLoginExist($_POST['desemail']) === true){
+ 
+        User::setError("Este endereço de e-mail já está cadastrado.");
+        header('Location: /profile');
+        exit;
+    }
+
+  }
+
+   $_POST['inadmin'] = $user->getinadmin();
+   $_POST['despassword'] = $user->getdespassword();
+   $_POST['deslogin'] = $_POST['desemail'];
+
+   $user->setData($_POST);
+
+   $user->update();
+   
+   //Mensagem de quando as alterações foram feitas com sucesso
+   User::setSuccess("Dados alterados com sucesso!!!");
+
+   header("Location: /profile");
+
+   exit;
+   });
 //Aqui nesta linha o php vai limpar a memória e ira colocar o rodapé(footer) do html na pagina  
 
 //().'?page=':Esta interrogação(?) é feita para manda r as variaveis de query string 

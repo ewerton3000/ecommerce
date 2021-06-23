@@ -15,6 +15,7 @@ const SESSION ="User";
   const SECRET_IV ="HcodePhp7_Secret";
   const ERROR = "UserError";//Constante para armazenar o erro
   const ERROR_REGISTER ="UserErrorRegister";//Constante para armazenar o registro de erro 
+  const SUCCESS = "UserSucess";
 
 //Chave constante para o encrypt(para criptografar) na função getforgot
   
@@ -169,7 +170,7 @@ $results = $sql->select("CALL sp_usersupdate_save(:iduser,:desperson,:deslogin,:
 ":iduser"=>$this->getiduser(),
 ":desperson"=>utf8_decode($this->getdesperson()),
 ":deslogin"=>$this->getdeslogin(),
-":despassword"=>User::getPasswordHash($this->getdespassword()),
+":despassword"=>$this->getdespassword(),
 ":desemail"=>$this->getdesemail(),
 ":nrphone"=>$this->getnrphone(),
 ":inadmin"=>$this->getinadmin()
@@ -296,6 +297,28 @@ date_add(a.dtregister,interval 1 hour)>= now();" ,array(
    public static function clearError(){
 
    	$_SESSION[User::ERROR] = NULL;
+
+
+   }
+
+   //criando um método para mostrar o erro de Usuário
+   public static function setSuccess($msg){
+   
+   	$_SESSION[User::SUCCESS]= $msg;
+
+   }
+   //Método para pegar o conteúdo do erro
+   public static function getSuccess(){
+
+   	$msg = (isset($_SESSION[User::SUCCESS]) && $_SESSION[User::SUCCESS]) ? $_SESSION[User::SUCCESS] : '';
+   	User::clearSUCCESS();
+   	return $msg;
+   }
+
+   //Método para limpar o erro
+   public static function clearSuccess(){
+
+   	$_SESSION[User::SUCCESS] = NULL;
 
 
    }
