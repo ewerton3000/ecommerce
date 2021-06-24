@@ -8,9 +8,9 @@ use PHPMailer\PHPMailer\Exception;
 use Rain\Tpl;
         
 class Mailer{
-	    const USERNAME="testetestedeemail456@gmail.com";
+	    const USERNAME="coloque o seu email";
 	    //por algum motivo só aceitou com a senha
-		const PASSWORD="teste1188";
+		const PASSWORD="<?password?>";
 		const NAME_FROM ='Hcode Store';
 
 		private $mail;
