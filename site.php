@@ -147,18 +147,117 @@ exit;
 
 });
 
+
+//Rota para salvar o endereço do checkout
+
+
+
 //Rota para o checkout(finalizar compra)
 $app->get("/checkout",function(){
 //Passando pra tela de login do usuario com false
 User::verifyLogin(false);
-$cart = Cart::getFromSession();
+
 //variavel para o endereço
 $address = new Address();
+
+$cart = Cart::getFromSession();
+
+
+
+//Se o cep for via get
+if(isset($_GET['zipcode'])){
+
+//Carregando o cep com o método loadFromCEP 
+    $address->loadFromCEP($_GET['zipcode']);
+    //setando o cep para o carrinho
+    $cart->setdeszipcode($_GET['zipcode']);
+    //salvando no carrinho
+    $cart->save();
+    //Calculando o total da compra com o frete
+    $cart->getCalculateTotal();
+  
+}
+//Condições se não tiver endereço fica em branco
+if (!$address->getdesaddress()) $address->setdesaddress('');
+if (!$address->getdescomplement()) $address->setdescomplement('');
+if (!$address->getdesdistrict()) $address->setdesdistrict('');
+if (!$address->getdescity()) $address->setdescity('');
+if (!$address->getdesstate()) $address->setdesstate('');
+if (!$address->getdescountry()) $address->setdescountry('');
+if (!$address->getdeszipcode()) $address->setdeszipcode('');
+
+//Atualizando o frete no carrinho de compras no template cart
+
+
 $page = new Page();
 $page->setTpl("checkout",[
     'cart'=>$cart->getValues(),
-    'address'=>$address->getValues()
+    'address'=>$address->getValues(),
+    'products'=>$cart->getProducts(),
+    'error'=>Address::getMsgError()
       ]);
+});
+
+
+//Rota para salvar as informações do endereço pro SQL
+$app->post("/checkout",function(){
+    //verificando se o usuario está logado
+    User::verifyLogin(false);
+
+    //Se o CEP  não estiver preenchido ou estiver vazio
+    if(!isset($_POST['zipcode']) || $_POST['zipcode'] === ''){
+    Address::setMsgError("Você esqueceu de informar seu o CEP.");
+    header("Location: /checkout");//Redirecionando para a página checkout
+    exit;
+    }
+     //Se o Bairro não estiver preenchido ou estiver vazio
+    if (!isset($_POST['desdistrict']) || $_POST['desdistrict'] === '') {
+        Address::setMsgError("Vc esqueceu de colocar o seu  bairro.");
+        header("Location: /checkout");
+        exit;
+    }
+
+    //Se a cidade não estiver preenchido ou estiver vazio
+    if(!isset($_POST['descity']) || $_POST['descity'] === ''){
+    Address::setMsgError("Você esqueceu de informar seu o cidade.");
+    header("Location: /checkout");//Redirecionando para a página checkout
+    exit;
+    }
+    //Se o estado não estiver preenchido ou estiver vazio
+    if(!isset($_POST['desstate']) || $_POST['desstate'] === ''){
+    Address::setMsgError("Você esqueceu de informar seu o estado.");
+    header("Location: /checkout");//Redirecionando para a página checkout
+    exit;
+    }
+   
+    //Se o endereço não estiver preenchido ou estiver vazio
+    if(!isset($_POST['desaddress']) || $_POST['desaddress'] === ''){
+    Address::setMsgError("Você esqueceu de informar seu o endereço.");
+    header("Location: /checkout");//Redirecionando para a página checkout
+    exit;
+    }
+    //Se o país não estiver preenchido ou estiver vazio
+    if(!isset($_POST['descountry']) || $_POST['descountry'] === ''){
+    Address::setMsgError("Você esqueceu de informar seu o país.");
+    header("Location: /checkout");//Redirecionando para a página checkout
+    exit;
+    }
+   
+    $user = User::getFromSession();
+
+    $address = new  Address();
+//Usando o post deszipcode para mostrar no tpl no zipcode(aqui ele puxar o post para representa-lo)
+
+    $_POST['deszipcode'] = $_POST['zipcode'];
+    $_POST['idperson'] = $user->getidperson();
+//Puxando o cep pelo post do formulário
+ $address->setData($_POST);
+//Salvando os dados 
+ $address->save();
+ //Redirecionando para a página de pagamento
+ header("Location: /order");
+ exit;//finalizando o processo
+
 });
 
 //Rota para entrar como usuário cliente
