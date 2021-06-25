@@ -495,7 +495,7 @@ if(user::checkLoginExist($_POST['email']) === true){
    exit;
    });
 
-   //´Rota para a página de pagamento
+   //´Rota para a página de pagamento do pedido
    //OBS:idorder = representa a id de ordem pagamento
    $app->get("/order/:idorder", function($idorder){
 
@@ -514,11 +514,11 @@ if(user::checkLoginExist($_POST['email']) === true){
 
 });
 
-//Rota para o boleto
+//Rota para o boleto do pedido
    $app->get("/boleto/:idorder", function($idorder){
     //Verifica se o usuario está logado
     User::verifyLogin(false);
-    //Instanciando a classe Order
+    //Instanciando a classe Order(Pedido)
     $order = new Order();
     //pegando o idorder
     $order->get((int)$idorder);
@@ -582,6 +582,57 @@ require_once($path."funcoes_itau.php");
 require_once($path."layout_itau.php");
 
 
+   });
+
+   //Rota para carregar os pedidos no Perfil
+   $app->get("/profile/orders",function(){
+   //Verificar e o usuario está logado
+    User::verifyLogin(false);
+
+     $user=User::getFromSession();
+
+    //Instanciando a classe Page para aparecer a página
+    $page = new Page();
+
+   
+
+    $page->setTpl("profile-orders",[
+     'orders'=>$user->getOrders()
+    ]);
+
+
+
+
+   });
+
+   //Rota para carregar os detalhes do Pedido
+   $app->get("/profile/orders/:idorder",function($idorder){
+
+     //Verificar e o usuario está logado
+    User::verifyLogin(false);
+   
+    
+    $order = new Order();
+    
+    //Carregando o pedido
+    $order->get((int)$idorder);
+
+    //Instanciando a classe cart
+    $cart = new Cart();
+
+    //Pegando o id do carrinho do pedido
+    $cart->get((int)$order->getidcart());
+    //Pegando O valor total do pedido
+    $cart->getCalculateTotal();
+
+ //Instanciando a classe Page para aparecer a página
+    $page = new Page();
+
+    $page->setTpl("profile-orders-detail",[
+     'order'=>$order->getValues(),//Carregando o pedido no template
+     'cart'=>$cart->getValues(),//Carregando o carrinho no template
+     'products'=>$cart->getProducts()//Carregando os produtos do carrinho no template
+    ]);
    });
 
 

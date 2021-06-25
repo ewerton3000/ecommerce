@@ -1,5 +1,7 @@
 <?php
 use\Hcode\Model\User;
+use\Hcode\Model\Cart;
+
 
 //Usando um método para converter valores dos produtos em decimais para ficarem certos na página
 function formatPrice($vlprice){
@@ -22,5 +24,29 @@ function getUserName()
         
      return $user->getdesperson();
  
+  }
+
+//Método para Mostrar o valor total no ícone do carrinho
+  function getCartNrQtd(){
+//Pegando a id do carrinho
+    $cart = Cart::getFromSession();
+    
+    //Jogando o preços total do pedido em $totals
+    $totals =$cart->getProductsTotals();
+
+    //Retornando o valor de $totals usando o nrqtd do TPL
+    return $totals['nrqtd'];
+  }
+
+  //Método para Mostrar o valor total dos produtos sem a soma do frete
+  function getCartVlSubTotal(){
+//Pegando a id do carrinho
+    $cart = Cart::getFromSession();
+    
+    //Jogando o preços total do pedido em $totals
+    $totals =$cart->getProductsTotals();
+
+    //Retornando o valor de $totals usando o vlprice do TPL
+    return formatPrice($totals['vlprice']);
   }
 ?>
