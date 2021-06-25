@@ -635,6 +635,83 @@ require_once($path."layout_itau.php");
     ]);
    });
 
+//Rota para alterar a senha (no próprio site)
+$app->get("/profile/change-password",function(){
+//Verificando se o usuário está logado
+    User::verifyLogin(false);
+
+    $page = new Page();
+   
+   //Abrindo o tpl profile-change-password
+    $page->setTpl("profile-change-password",[
+        'changePassError'=>User::getError(),//Puxando da classe User o método getError
+         'changePassSuccess'=>User::getSuccess()]);//Puxando da classe User o método getSuccess
+
+});
+
+//Rota para o post a senha em alterar senha
+$app->post("/profile/change-password",function(){
+     
+     User::verifyLogin(false);
+    //Se a senha atual não foi definida ou estiver vazio
+    if(!isset($_POST['current_pass']) || $_POST['current_pass'] === ''){
+        //Mensagem de erro 
+        User::setError("Digite a senha atual !");
+        //Redirecionando pra página de alterar a senha
+        header("Location: /profile/change-password");
+        exit;
+    }
+    
+    //Se a nova senha não foi definida ou estiver vazia
+    if(!isset($_POST['new_pass']) || $_POST['new_pass'] === ''){
+        //Mensagem de erro 
+        User::setError("Digite a nova senha!");
+        //Redirecionando pra página de alterar a senha
+        header("Location: /profile/change-password");
+        exit;
+    }
+
+     //Se a confirmação da senha não foi definida ou estiver vazia
+    if(!isset($_POST['new_pass_confirm']) || $_POST['new_pass_confirm'] === ''){
+        //Mensagem de erro 
+        User::setError("Confirme a nova senha!");
+        //Redirecionando pra página de alterar a senha
+        header("Location: /profile/change-password");
+        exit;
+    }
+
+//Se a nova senha é igual da senha atual
+    if($_POST['current_pass'] === $_POST['new_pass']){
+        //Mensagem de erro 
+        User::setError("Sua nova senha deve ser diferente da atual");
+        //Redirecionando pra página de alterar a senha
+        header("Location: /profile/change-password");
+        exit;
+    }
+    $user = User::getFromSession();
+
+//
+    if(!password_verify($_POST['current_pass'], $user->getdespassword())){
+        //Mensagem de erro 
+        User::setError("A nova senha está invalida");
+        //Redirecionando pra página de alterar a senha
+        header("Location: /profile/change-password"); 
+        exit;
+
+    }
+   //Passando a senha do post para o SQL sem o hash
+   $user->setdespassword($_POST['new_pass']);
+   //Atualizando a senha e dentro do método o hash será feito
+   $user->update();
+   //Mostrando a mensagem de confirmação
+   User::setSuccess("Senha alterada com sucesso.");
+
+   header("Location: /profile/change-password"); 
+        exit;
+
+
+});
+
 
 //Aqui nesta linha o php vai limpar a memória e ira colocar o rodapé(footer) do html na pagina  
 
