@@ -137,7 +137,7 @@ pinadmin TINYINT*/
 //Chamando a procedure da tabela ecommerce
 $results = $sql->select("CALL sp_users_save(:desperson,:deslogin,:despassword,:desemail,:nrphone,:inadmin)",array(
 	//
-  ":desperson"=>utf8_decode($this->getdesperson()),
+  ":desperson"=>$this->getdesperson(),
  ":deslogin"=>$this->getdeslogin(),
 ":despassword"=>User::getPasswordHash($this->getdespassword()),//usando o método para criptografar a senha e salva-la no SQL
 ":desemail"=>$this->getdesemail(),
