@@ -4,10 +4,46 @@ use\Hcode\Model\User;
 
 $app->get("/admin/users",function(){
 	User::verifyLogin();
-	$users = User::listAll();
+
+//Se a procura
+	$search = (isset($_GET['search'])) ? $_GET['search'] : "";
+
+//Se for definido na url o page então o inteiro será page
+	$page = (isset($_GET['page'])) ? (int)$_GET['page'] : 1;
+ 
+ //Se a procurar for diferente de vazio   
+if($search != ''){
+
+$pagination = User::getPageSearch($search , $page , 1);
+}
+//Senão
+else{
+$pagination = User::getPage($page);
+}
+    //Puxando o método pela classe User
+    //User::getPage($page,2):Aqui vc pode controlar quantos usuarios vc quer por página
+    //Exemplo: uma pessoa por página User::getPage($page,1) duas pessoas User::getPage($page,2)
+	
+	$pages = [];
+
+	for($x = 0;$x < $pagination['pages'];$x++){
+        //Controlando as páginas com for
+		array_push($pages,[
+			'href'=>'/admin/users?'.http_build_query([
+				'page'=>$x+1,
+				'search'=>$search
+			]),
+			'text'=>$x+1
+		]);
+
+		
+	}
 	$page = new PageAdmin();
 	$page->setTpl("users",array(
-		"users"=>$users));
+		"users"=>$pagination['data'],
+	    "search"=>$search,
+	    "pages"=>$pages
+	));
 });
 $app->get('/admin/users/create',function(){
 	//Verificando se o login está ativo
