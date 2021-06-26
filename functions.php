@@ -11,6 +11,12 @@ function formatPrice($vlprice){
 //convertendo o valor com virgula(,) e ponto(. pra milhares e milhoes)                        
 	return number_format($vlprice,2,",",  ".");
 }
+
+//Método para mostrar a data nos  detalhes do pedido
+function formatDate($date){
+    return date('d/m/Y', strtotime($date));
+    //strtotime:Função para inverter os dados  exemplo: d/m/Y para Y/m/d
+}
 //Método para checar o login
 function checkLogin($inadmin = true){
 	return User::checkLogin($inadmin);
