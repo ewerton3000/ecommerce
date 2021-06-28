@@ -30,7 +30,7 @@ class Order extends Model{
      }
 
 	}
-
+//Método para puxar os detalhes do pedido
 	public function get($idorder){
 
       $sql = new Sql();
@@ -49,6 +49,7 @@ class Order extends Model{
       	]);
       if (count($results)> 0) {
       	$this->setData($results[0]);
+        $this->setdesperson(utf8_encode($this->getdesperson()));
       }
 
 
@@ -136,5 +137,66 @@ class Order extends Model{
 
 
    }
+
+   public static function getPage($page = 1,$itemsPerPage = 10){
+//Usando a variavel Start para iniciar na página 0 na lista de usuários
+//OBS:o $page começa na pagina 1 então ele terá que ser 0 pra começar do inicio ou seja ele começa como posição de array por issose faz $page -1 multiplicado com $itemsPerPage
+ $start = ($page -1) * $itemsPerPage;
+ $sql= new Sql();
+ $results =$sql->select("
+    SELECT SQL_CALC_FOUND_ROWS* 
+    FROM tb_orders a 
+        INNER JOIN tb_ordersstatus b USING(idstatus)
+        INNER JOIN tb_carts c USING(idcart)
+        INNER JOIN tb_users d ON d.iduser = a.iduser
+        INNER JOIN tb_addresses e USING(idaddress)
+        INNER JOIN tb_persons f ON f.idperson = d.idperson
+        ORDER BY a.dtregister DESC
+        LIMIT $start , $itemsPerPage;
+                  ");
+
+ //Segunda consulta para contar linhas na tabela
+$resultTotal = $sql->select("SELECT FOUND_ROWS() AS nrtotal;");
+//Usando array no return
+return [
+    "data"=>$results,//Mostrando os dados do produto
+    "total"=>(int)$resultTotal[0]["nrtotal"],//Mostrando os registros começando da posição 0 com nrtotal(rode o codigo do sql do $results no SQL e usando int para garantir que vai ser um número )
+    "pages"=>ceil($resultTotal[0]["nrtotal"]/ $itemsPerPage)//Usando o cell pra criar outra página
+];
+}
+
+//
+ public static function getPageSearch($search, $page = 1, $itemsPerPage = 10)
+    {
+
+        $start = ($page - 1) * $itemsPerPage;
+
+        $sql = new Sql();
+
+        $results = $sql->select("
+            SELECT SQL_CALC_FOUND_ROWS *
+            FROM tb_orders a 
+        INNER JOIN tb_ordersstatus b USING(idstatus)
+        INNER JOIN tb_carts c USING(idcart)
+        INNER JOIN tb_users d ON d.iduser = a.iduser
+        INNER JOIN tb_addresses e USING(idaddress)
+        INNER JOIN tb_persons f ON f.idperson = d.idperson
+        WHERE a.idorder = :id OR f.desperson LIKE :search
+        ORDER BY a.dtregister DESC
+        LIMIT $start, $itemsPerPage;
+        ", [
+            ':search'=>'%'.$search.'%',
+            ':id'=>$search
+        ]);
+
+        $resultTotal = $sql->select("SELECT FOUND_ROWS() AS nrtotal;");
+
+        return [
+            'data'=>$results,
+            'total'=>(int)$resultTotal[0]["nrtotal"],
+            'pages'=>ceil($resultTotal[0]["nrtotal"] / $itemsPerPage)
+        ];
+
+    }
 }
 ?>

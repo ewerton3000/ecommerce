@@ -161,6 +161,8 @@ $app->get("/checkout",function(){
 //Passando pra tela de login do usuario com false
 User::verifyLogin(false);
 
+
+
 //variavel para o endereço
 $address = new Address();
 

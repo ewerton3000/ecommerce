@@ -10,7 +10,7 @@ use Rain\Tpl;
 class Mailer{
 	    const USERNAME="coloque o seu email";
 	    //por algum motivo só aceitou com a senha
-		const PASSWORD="<?password?>";
+		const PASSWORD="<?Senha do email?>";
 		const NAME_FROM ='Hcode Store';
 
 		private $mail;

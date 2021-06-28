@@ -4,7 +4,6 @@ use\Hcode\PageAdmin;
 use\Hcode\Model\User;
 use\Hcode\Model\Order;
 use\Hcode\Model\OrderStatus;
-use\Hcode\Model\Cart;
 
 
 //Rota para editar o status do pedido
@@ -77,14 +76,14 @@ $app->get("/admin/orders/:idorder/delete",function($idorder){
 //Rota para os detalhes do pedido
 $app->get("/admin/orders/:idorder",function($idorder){
 	User::VerifyLogin();
-	Cart::getFromSession();
+
 
 	$order = new Order();
 
 	$order->get((int)$idorder);
 
    
-
+ 
     $cart = $order->getCart();
 
 
@@ -94,8 +93,8 @@ $app->get("/admin/orders/:idorder",function($idorder){
 //
 	$page->setTpl("order",[
 		'order'=>$order->getValues(),//puxando o pedido
-		'products'=>$cart->getProducts(),//puxando os produtos dentro do carrinho
-		'cart'=>$cart->getValues()//puxando o carrinho
+		'cart'=>$cart->getValues(),//puxando o carrinho
+		'products'=>$cart->getProducts()//puxando os produtos dentro do carrinho
 		
 	]);
 
@@ -103,13 +102,52 @@ $app->get("/admin/orders/:idorder",function($idorder){
 
 //Rota para a administração de pedidos do ADM
 $app->get("/admin/orders",function(){
+
 	User::verifyLogin();
+
+
+$search = (isset($_GET['search'])) ? $_GET['search'] : "";
+
+//Se for definido na url o page então o inteiro será page
+	$page = (isset($_GET['page'])) ? (int)$_GET['page'] : 1;
+ 
+ //Se a procurar for diferente de vazio   
+if($search != ''){
+
+$pagination = Order::getPageSearch($search , $page , 1);
+}
+//Senão
+else{
+$pagination = Order::getPage($page);
+}
+    //Puxando o método pela classe User
+    //User::getPage($page,2):Aqui vc pode controlar quantos usuarios vc quer por página
+    //Exemplo: uma pessoa por página User::getPage($page,1) duas pessoas User::getPage($page,2)
+	
+	$pages = [];
+
+	for($x = 0;$x < $pagination['pages'];$x++){
+        //Controlando as páginas com for
+		array_push($pages,[
+			'href'=>'/admin/orders?'.http_build_query([
+				'page'=>$x+1,
+				'search'=>$search
+			]),
+			'text'=>$x+1
+		]);
+
+		
+	}
+
+
 
 	$page = new PageAdmin();
     
     //Puxando a lista de pedidos na página
 	$page->setTpl("orders",[
-		"orders"=>Order::listAll()
+		"orders"=>$pagination['data'],
+		"search"=>$search,
+		"pages"=>$pages
 	]);
 
 
