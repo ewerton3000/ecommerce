@@ -212,7 +212,7 @@ $this->getCalculateTotal();
                 'sCdAvisoRecebimento' => 'S',
        ]);
 
- 	 	//executando uma consulta pela url abaixo e 
+ 	 	//executando uma consulta pela url abaixo para puxar os dados de endereço pelos correios
  	 	$xml = simplexml_load_file("http://ws.correios.com.br/calculador/CalcPrecoPrazo.asmx/CalcPrecoPrazo?".$qs);
 
         $result =$xml->Servicos->cServico;

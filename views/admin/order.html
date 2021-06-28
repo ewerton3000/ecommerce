@@ -63,19 +63,19 @@
             <table class="table table-striped">
                 <thead>
                 <tr>
-                    <th>Qtd</th>
                     <th>Produto</th>
+                    <th>Quantidade</th>
                     <th>Código #</th>
-                    <th>Subtotal</th>
+                    <th>Preço Do Produto</th>
                 </tr>
                 </thead>
                 <tbody>
                 {loop="$products"}
                 <tr>
-                    <td>{$value.nrqtd}</td>
                     <td>{$value.desproduct}</td>
+                    <td>{$value.nrqtd}</td>
                     <td>{$value.idproduct}</td>
-                    <td>R${function="formatPrice($order.vltotal)"}</td>
+                    <td>R${$value.vltotal}</td>
                 </tr>
                 {/loop}
                 </tbody>

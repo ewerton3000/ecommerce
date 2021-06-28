@@ -9,13 +9,52 @@ use\Hcode\Model\Product;
    $app->get("/admin/categories",function(){
    	//Verificar se o usuário esta logado com User::verifyLogin();
    	User::verifyLogin();
+
+   	//Se a procura
+	$search = (isset($_GET['search'])) ? $_GET['search'] : "";
+
+//Se for definido na url o page então o inteiro será page
+	$page = (isset($_GET['page'])) ? (int)$_GET['page'] : 1;
+ 
+ //Se a procurar for diferente de vazio   
+if($search != ''){
+
+$pagination = Category::getPageSearch($search , $page , 1);
+}
+//Senão
+else{
+$pagination = Category::getPage($page);
+}
+    //Puxando o método pela classe User
+    //User::getPage($page,2):Aqui vc pode controlar quantos usuarios vc quer por página
+    //Exemplo: uma pessoa por página User::getPage($page,1) duas pessoas User::getPage($page,2)
+	
+	$pages = [];
+
+	for($x = 0;$x < $pagination['pages'];$x++){
+        //Controlando as páginas com for
+		array_push($pages,[
+			'href'=>'/admin/users?'.http_build_query([
+				'page'=>$x+1,
+				'search'=>$search
+			]),
+			'text'=>$x+1
+		]);
+
+		
+	}
+	$page = new PageAdmin();
+
 //Usando a classe Category e o método listAll()
 $categories = Category::listAll();
-$page = new PageAdmin();
+
  //selecionando o template categories
 	$page->setTpl("categories",[
 //usando a variavel que está no template categories
-		"categories"=>$categories]);
+	   "categories"=>$pagination['data'],
+	    "search"=>$search,
+	    "pages"=>$pages
+	 ]);
 });
 	
 //Criando a rota categories create

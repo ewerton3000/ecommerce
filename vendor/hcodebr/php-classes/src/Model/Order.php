@@ -85,6 +85,7 @@ class Order extends Model{
     //Método para buscar o carrinho e instanciando a classe Cart
     public function getCart():Cart{
      //Instanciando a classe Cart
+
         $cart = new Cart();
         //Pegando o id do carrinho
         $cart->get((int)$this->getidcart());

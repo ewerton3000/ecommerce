@@ -63,19 +63,19 @@
             <table class="table table-striped">
                 <thead>
                 <tr>
-                    <th>Qtd</th>
                     <th>Produto</th>
+                    <th>Quantidade</th>
                     <th>Código #</th>
-                    <th>Subtotal</th>
+                    <th>Preço Do Produto</th>
                 </tr>
                 </thead>
                 <tbody>
                 <?php $counter1=-1;  if( isset($products) && ( is_array($products) || $products instanceof Traversable ) && sizeof($products) ) foreach( $products as $key1 => $value1 ){ $counter1++; ?>
                 <tr>
-                    <td><?php echo htmlspecialchars( $value1["nrqtd"], ENT_COMPAT, 'UTF-8', FALSE ); ?></td>
                     <td><?php echo htmlspecialchars( $value1["desproduct"], ENT_COMPAT, 'UTF-8', FALSE ); ?></td>
+                    <td><?php echo htmlspecialchars( $value1["nrqtd"], ENT_COMPAT, 'UTF-8', FALSE ); ?></td>
                     <td><?php echo htmlspecialchars( $value1["idproduct"], ENT_COMPAT, 'UTF-8', FALSE ); ?></td>
-                    <td>R$<?php echo formatPrice($order["vltotal"]); ?></td>
+                    <td>R$<?php echo htmlspecialchars( $value1["vltotal"], ENT_COMPAT, 'UTF-8', FALSE ); ?></td>
                 </tr>
                 <?php } ?>
                 </tbody>

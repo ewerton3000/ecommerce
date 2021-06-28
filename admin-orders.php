@@ -4,6 +4,7 @@ use\Hcode\PageAdmin;
 use\Hcode\Model\User;
 use\Hcode\Model\Order;
 use\Hcode\Model\OrderStatus;
+use\Hcode\Model\Cart;
 
 
 //Rota para editar o status do pedido
@@ -76,22 +77,26 @@ $app->get("/admin/orders/:idorder/delete",function($idorder){
 //Rota para os detalhes do pedido
 $app->get("/admin/orders/:idorder",function($idorder){
 	User::VerifyLogin();
+	Cart::getFromSession();
 
 	$order = new Order();
 
 	$order->get((int)$idorder);
-    
+
+   
+
     $cart = $order->getCart();
 
-    
+
 
 	$page = new PageAdmin();
 
 //
 	$page->setTpl("order",[
 		'order'=>$order->getValues(),//puxando o pedido
-		'cart'=>$cart->getValues(),//puxando o carrinho
-		'products'=>$cart->getProducts()//puxando os produtos dentro do carrinho
+		'products'=>$cart->getProducts(),//puxando os produtos dentro do carrinho
+		'cart'=>$cart->getValues()//puxando o carrinho
+		
 	]);
 
 });
