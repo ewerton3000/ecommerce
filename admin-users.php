@@ -2,6 +2,66 @@
 use\Hcode\PageAdmin;
 use\Hcode\Model\User;
 
+//Rota para alterar a senha dos usuarios pelo pelo menu do ADM
+$app->get("/admin/users/:iduser/password" ,function($iduser){
+
+	User::verifyLogin();
+
+	$user = new User();
+
+	$user->get((int)$iduser);
+
+	$page = new PageAdmin();
+    
+	$page->setTpl("users-password",[
+	 "user"=>$user->getValues(),
+	 "msgError"=>User::getError(),//Mensagem de erro para o usuário
+	 "msgSuccess"=>User::getSuccess()// Mensagem de Feito com sucesso
+	]);
+
+});
+
+//Rota para alterar a senha dos usuarios pelo pelo menu do ADM
+$app->post("/admin/users/:iduser/password" ,function($iduser){
+
+	User::verifyLogin();
+     
+     //Se o campo da senha nãoestiver definido ou estiver vazio
+    if(!isset($_POST['despassword']) || $_POST['despassword'] ===''){
+        
+    	User::setError("Preencha a nova senha");
+    	header("Location: /admin/users/$iduser/password");//Redirecionando
+    	exit;
+    }
+
+
+if(!isset($_POST['despassword-confirm']) || $_POST['despassword-confirm'] ===''){
+        
+    	User::setError("Preencha a confirmação da  nova senha");
+    	header("Location: /admin/users/$iduser/password");//Redirecionando
+    	exit;
+    }
+
+    if($_POST['despassword'] !== $_POST['despassword-confirm']){
+        
+    	User::setError("Confirme corretamente as senhas");
+    	header("Location: /admin/users/$iduser/password");//Redirecionando
+    	exit;
+    }
+
+	$user = new User();
+
+	$user->get((int)$iduser);
+    
+    //Passando a senha , criptografando com getPassword hash e salvando SQL
+    $user->setPassword(User::getPasswordHash($_POST['despassword']));
+	
+	User::setSuccess("Senha alterada com sucesso!");//Confirmando a senha com mensagem
+    	header("Location: /admin/users/$iduser/password");//Redirecionando
+    	exit;
+
+});
+
 $app->get("/admin/users",function(){
 	User::verifyLogin();
 
