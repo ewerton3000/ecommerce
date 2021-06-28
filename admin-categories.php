@@ -34,7 +34,7 @@ $pagination = Category::getPage($page);
 	for($x = 0;$x < $pagination['pages'];$x++){
         //Controlando as páginas com for
 		array_push($pages,[
-			'href'=>'/admin/users?'.http_build_query([
+			'href'=>'/admin/categories?'.http_build_query([
 				'page'=>$x+1,
 				'search'=>$search
 			]),
